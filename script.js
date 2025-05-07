@@ -2,7 +2,7 @@ let number1, number2, oprt;
 
 const displayBox = document.querySelector("#display-box");
 const buttons = document.querySelectorAll(".buttons");
-const btnClear = document.querySelector("#clear");
+
 const allowedKeys = [
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
     "+", "-", "*", "/", "%",".", "(", ")", "Backspace", "Delete", "ArrowLeft", "ArrowRight", "Enter"
@@ -10,35 +10,76 @@ const allowedKeys = [
 
 const operations = ["+", "-", "*", "x", "/", "%", "÷"];
 
-displayBox.addEventListener("keydown", function(e){
-
-    if(!allowedKeys.includes(e.key)){
+document.addEventListener("keydown", function(e){
+    if (!allowedKeys.includes(e.key)) {
         e.preventDefault();
         return;
     }
 
-    if (["+", "-", "*", "/", "%"].includes(e.key)) {
-        if (hasOperator(displayBox.value)) {
-        e.preventDefault();
-        return;
+    const key = e.key;
+
+    // Handle digits
+    if (!isNaN(key)) {
+        if (number1 && number2 && !hasOperator(displayBox.value)) {
+            displayBox.value = "";
+            number1 = null;
+            number2 = null;
+            displayBox.value += key;
+        } else {
+            displayBox.value += key;
         }
+        e.preventDefault();
+        return;
     }
 
-    // e.preventDefault(); // always prevent default operator
-    if (e.key === "/") {
+    // Handle operators
+    if (["+", "-", "*", "/", "%"].includes(key)) {
+        if (displayBox.value.trim() === "" && key !== "-") {
+            e.preventDefault();
+            return;
+        }
+
+        if (displayBox.value === "-" && displayBox.value.length === 1) {
+            e.preventDefault();
+            return;
+        }
+
+        if (hasOperator(displayBox.value)) {
+            if (setVariables(displayBox.value)) {
+                displayBox.value = operate(oprt, number1, number2);
+                displayBox.value += key === "*" ? "x" : key === "/" ? "÷" : key;
+            } else {
+                displayBox.value = displayBox.value.slice(0, -1);
+                displayBox.value += key === "*" ? "x" : key === "/" ? "÷" : key;
+            }
+        } else {
+            displayBox.value += key === "*" ? "x" : key === "/" ? "÷" : key;
+        }
+
         e.preventDefault();
-      displayBox.value += "÷";
-    } else if (e.key === "*") {
-        e.preventDefault();
-      displayBox.value += "x";
-    } else if(["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)){
-    } 
-    else {
-        e.preventDefault();
-      displayBox.value += e.key;
+        return;
     }
 
-    return;
+    // Handle Enter (Equals)
+    if (key === "Enter") {
+        if (setVariables(displayBox.value)) {
+            displayBox.value = operate(oprt, number1, number2);
+        }
+        e.preventDefault();
+        return;
+    }
+
+    // Handle Backspace
+    if (key === "Backspace") {
+        displayBox.value = displayBox.value.slice(0, -1);
+        e.preventDefault();
+        return;
+    }
+
+    // Allow navigation keys
+    if (["ArrowLeft", "ArrowRight", "Delete"].includes(key)) {
+        return;
+    }
 });
 
 
@@ -47,15 +88,36 @@ buttons.forEach(button => {
         const type = button.dataset.type;
 
         if(type === "digit"){
-            displayBox.value += button.textContent;
+            if(number1 && number2 && !hasOperator(displayBox.value))
+            {
+                displayBox.value  = "";
+                number1 = null;
+                number2 = null;
+                displayBox.value += button.textContent;
+            }else{
+                displayBox.value += button.textContent;
+            }
         } else if(type === "op"){
-            if (hasOperator(displayBox.value) || (displayBox.value.trim() === "" && button.textContent != "-")) {
+            if(displayBox.value.trim() === "" && button.textContent != "-" || (displayBox.value === "-" && displayBox.value.length === 1)){
                 e.preventDefault();
+            } else if (hasOperator(displayBox.value)) {
+                if(setVariables(displayBox.value))
+                {
+                    displayBox.value = operate(oprt, number1, number2);
+                    displayBox.value += button.textContent;
+                } else{
+                    displayBox.value = displayBox.value.slice(0, -1);
+                    displayBox.value += button.textContent;
+                }
+
             }else{
                 displayBox.value += button.textContent;
             }
         }else if(type === "clear") {
             displayBox.value  = "";
+            number1 = null;
+            number2 = null;
+            oprt = null;
         } else if(type === "equals"){
             // Equal
             if(setVariables(displayBox.value))
@@ -86,7 +148,7 @@ function setVariables(str){
     number2 = parseInt(variables[1]);
     oprt = matchedOp;
 
-    if(number1 != null && number2 != null && oprt != null)
+    if(number1 && number2 && oprt != null)
     {
         return true;
     }else{
