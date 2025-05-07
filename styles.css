@@ -13,16 +13,19 @@ body{
 }
 
 input{
-    flex-grow: 1;
-    margin: 10px;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    height: 65px;
     background-color: #e3e3e3;
-    direction: rtl;
+    text-align: right;
     border: none;
-    font-size: 26px;
+    font-size: 30px;
 }
 
 input:focus{
     outline: none;
+    background-color: #e0e0e0;
 }
 
 .container{
@@ -45,10 +48,12 @@ input:focus{
 
 .display{
     margin: 10px;
+    padding: 10px;
     /* background-color: rgb(205, 68, 68); */
     height: 100px;
     width: auto;
     display: flex;
+    align-items: center;
 }
 
 .buttons-container{
