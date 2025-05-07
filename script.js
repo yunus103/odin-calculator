@@ -76,6 +76,14 @@ document.addEventListener("keydown", function(e){
         return;
     }
 
+    if (key === ".") {
+        if (canAddDot(displayBox.value)) {
+            displayBox.value += ".";
+        }
+        e.preventDefault();
+        return;
+    }
+
     // Allow navigation keys
     if (["ArrowLeft", "ArrowRight", "Delete"].includes(key)) {
         return;
@@ -126,9 +134,19 @@ buttons.forEach(button => {
             }
         } else if(type === "delete"){
             displayBox.value = displayBox.value.slice(0, -1);
+        } else if(type === "dot"){
+            if (canAddDot(displayBox.value)) {
+                displayBox.value += button.textContent;
+            }
         }
     });
 });
+
+function canAddDot(value) {
+    const parts = value.split(/[\+\-x÷\*\/\%]/);
+    const lastPart = parts[parts.length - 1];
+    return !lastPart.includes(".");
+}
 
 function setVariables(str){
     let finalStr = str;
@@ -141,19 +159,14 @@ function setVariables(str){
     let variables = finalStr.split(matchedOp);
     
     if(isNegative){
-        number1 = parseInt("-" + variables[0]);
+        number1 = parseFloat("-" + variables[0]);
     }else{
-        number1 = parseInt(variables[0]);
+        number1 = parseFloat(variables[0]);
     }
-    number2 = parseInt(variables[1]);
+    number2 = parseFloat(variables[1]);
     oprt = matchedOp;
 
-    if(number1 && number2 && oprt != null)
-    {
-        return true;
-    }else{
-        return false;
-    }
+    return !isNaN(number1) && !isNaN(number2) && oprt != null;
 }
 
 function hasOperator(value) {
@@ -174,22 +187,21 @@ function operate(op, num1, num2){
         op = "/";
     }
 
+    let result;
     switch(op){
-        case "+":
-            return add(num1, num2);
-
-        case "-":
-            return subtract(num1, num2);
-        
-        case "x":
-            return multiply(num1, num2);
-        
-        case "/":
-            return divide(num1, num2);
-
-        case "%":
-            return percentage(num1, num2);
+        case "+": result = add(num1, num2); break;
+        case "-": result = subtract(num1, num2); break;
+        case "x": result = multiply(num1, num2); break;
+        case "/": result = divide(num1, num2); break;
+        case "%": result = percentage(num1, num2); break;
     }
+
+    return roundResult(result);
+}
+
+function roundResult(val){
+    if (Number.isInteger(val)) return val;
+    return parseFloat(val.toFixed(5)); // limits to 5 decimal places
 }
 
 function add(num1, num2){
