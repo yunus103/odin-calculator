@@ -58,10 +58,12 @@ buttons.forEach(button => {
             displayBox.value  = "";
         } else if(type === "equals"){
             // Equal
-            setVariables(displayBox.value);
-            displayBox.value = operate(oprt, number1, number2);
+            if(setVariables(displayBox.value))
+            {
+                displayBox.value = operate(oprt, number1, number2);
+            }
         } else if(type === "delete"){
-
+            displayBox.value = displayBox.value.slice(0, -1);
         }
     });
 });
@@ -84,6 +86,12 @@ function setVariables(str){
     number2 = parseInt(variables[1]);
     oprt = matchedOp;
 
+    if(number1 != null && number2 != null && oprt != null)
+    {
+        return true;
+    }else{
+        return false;
+    }
 }
 
 function hasOperator(value) {
@@ -111,7 +119,7 @@ function operate(op, num1, num2){
         case "-":
             return subtract(num1, num2);
         
-        case "X":
+        case "x":
             return multiply(num1, num2);
         
         case "/":
