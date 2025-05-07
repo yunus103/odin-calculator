@@ -8,11 +8,7 @@ const allowedKeys = [
     "+", "-", "*", "/", "%",".", "(", ")", "Backspace", "Delete", "ArrowLeft", "ArrowRight", "Enter"
   ];
 
-const operations = ["+", "-", "*", "x", "/", "%"];
-
-function hasOperator(value) {
-    return operations.some(op => value.includes(op));
-}
+const operations = ["+", "-", "*", "x", "/", "%", "÷"];
 
 displayBox.addEventListener("keydown", function(e){
 
@@ -50,12 +46,10 @@ buttons.forEach(button => {
     button.addEventListener("click", () => {
         const type = button.dataset.type;
 
-        
-        
         if(type === "digit"){
             displayBox.value += button.textContent;
         } else if(type === "op"){
-            if (hasOperator(displayBox.value)) {
+            if (hasOperator(displayBox.value) || (displayBox.value.trim() === "" && button.textContent != "-")) {
                 e.preventDefault();
             }else{
                 displayBox.value += button.textContent;
@@ -64,12 +58,46 @@ buttons.forEach(button => {
             displayBox.value  = "";
         } else if(type === "equals"){
             // Equal
+            setVariables(displayBox.value);
+            displayBox.value = operate(oprt, number1, number2);
         } else if(type === "delete"){
 
         }
     });
 });
 
+function setVariables(str){
+    let finalStr = str;
+    let isNegative = false;
+    if(str.startsWith("-")){
+        finalStr = finalStr.slice(1);
+        isNegative = true;
+    }
+    const matchedOp = operations.find(op => finalStr.includes(op));
+    let variables = finalStr.split(matchedOp);
+    
+    if(isNegative){
+        number1 = parseInt("-" + variables[0]);
+    }else{
+        number1 = parseInt(variables[0]);
+    }
+    number2 = parseInt(variables[1]);
+    oprt = matchedOp;
+
+}
+
+function hasOperator(value) {
+    if (value === "-") {
+        return true; // Treat as "already has an operator"
+      }
+    
+      // If there's a leading "-", remove it before checking for other operators
+      if (value.startsWith("-")) {
+        value = value.slice(1);
+      }
+    
+      return operations.some(op => value.includes(op));
+}
 
 function operate(op, num1, num2){
     if (op === "÷") {
